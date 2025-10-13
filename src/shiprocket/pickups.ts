@@ -130,6 +130,47 @@ export class ShiprocketPickups {
     }
   }
 
+  async updateVendorPickupLocation(
+    vendor: any,
+    oldLocationName?: string
+  ): Promise<{ success: boolean; location_name?: string; error?: string; updated?: boolean }> {
+    try {
+      console.log(`[Shiprocket Pickups] Updating pickup location for vendor: ${vendor.name}`);
+      console.log(`[Shiprocket Pickups] Old location name: ${oldLocationName}`);
+      
+      const newLocationName = this.generateLocationName(vendor);
+      console.log(`[Shiprocket Pickups] New location name: ${newLocationName}`);
+      
+      // If the location name hasn't changed, still proceed to update the address details
+      if (oldLocationName && oldLocationName === newLocationName) {
+        console.log(`[Shiprocket Pickups] Location name unchanged, but updating address details`);
+      } else {
+        console.log(`[Shiprocket Pickups] Location name changed from '${oldLocationName}' to '${newLocationName}'`);
+      }
+      
+      // Create/update the pickup location with new details
+      const result = await this.createVendorPickupLocation(vendor);
+      
+      if (result.success) {
+        return {
+          ...result,
+          updated: oldLocationName !== newLocationName,
+        };
+      } else {
+        return result;
+      }
+    } catch (error) {
+      console.error(
+        "[Shiprocket Pickups] Error updating vendor pickup location:",
+        error
+      );
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
   async createVendorPickupLocation(
     vendor: any
   ): Promise<{ success: boolean; location_name?: string; error?: string }> {
@@ -229,19 +270,56 @@ export class ShiprocketPickups {
   }
 
   generateLocationName(vendor: any): string {
-    const storeName = vendor.store?.storeName || "Store";
-    const vendorId = vendor._id || "unknown";
-    let baseName = `${storeName}_${vendorId}`.replace(/[^a-zA-Z0-9_]/g, "_");
-    if (baseName.length > 36) {
-      const vendorIdSuffix = vendorId.slice(-8);
-      const maxStoreNameLength = 36 - vendorIdSuffix.length - 1;
-      const truncatedStoreName = storeName.slice(0, maxStoreNameLength);
-      baseName = `${truncatedStoreName}_${vendorIdSuffix}`.replace(
-        /[^a-zA-Z0-9_]/g,
-        "_"
-      );
+    console.log('[Shiprocket Pickups] Generating location name for vendor:', {
+      vendorName: vendor.name,
+      storeData: vendor.store,
+      storeName: vendor.store?.storeName
+    });
+    
+    // Try multiple ways to get the store name
+    let storeName = vendor.store?.storeName || 
+                   vendor.storeName || 
+                   vendor.name || 
+                   "Store";
+    
+    console.log('[Shiprocket Pickups] Raw store name:', storeName);
+    
+    // Clean and format the store name
+    storeName = storeName.trim().replace(/[^a-zA-Z0-9\s]/g, "").replace(/\s+/g, "_");
+    
+    // If still empty, use vendor name as fallback
+    if (!storeName || storeName === "_" || storeName.length === 0) {
+      storeName = (vendor.name || "Store").trim().replace(/[^a-zA-Z0-9\s]/g, "").replace(/\s+/g, "_");
     }
-    return baseName;
+    
+    console.log('[Shiprocket Pickups] Cleaned store name:', storeName);
+    
+    const vendorId = vendor._id || "unknown";
+    const vendorIdSuffix = vendorId.toString().slice(-8); // Last 8 characters
+    
+    // Calculate available space for store name (36 total - 1 underscore - 8 vendor suffix)
+    const maxStoreNameLength = 36 - 1 - vendorIdSuffix.length;
+    
+    // Truncate store name if needed
+    if (storeName.length > maxStoreNameLength) {
+      storeName = storeName.slice(0, maxStoreNameLength);
+    }
+    
+    // Build final name: StoreName_VendorId
+    const baseName = `${storeName}_${vendorIdSuffix}`.replace(/[^a-zA-Z0-9_]/g, "_");
+    
+    // Final safety check for 36 character limit
+    const finalName = baseName.length > 36 ? baseName.slice(0, 36) : baseName;
+    
+    console.log('[Shiprocket Pickups] Generated pickup location name:', {
+      storeName,
+      vendorIdSuffix,
+      baseName,
+      finalName,
+      length: finalName.length
+    });
+    
+    return finalName;
   }
 
   getVendorPickupLocation(vendor: any): string {

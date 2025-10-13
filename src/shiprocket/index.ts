@@ -9,6 +9,7 @@ export { ShiprocketAuth } from "./auth";
 export { ShiprocketOrders } from "./orders";
 export { ShiprocketTracking } from "./tracking";
 export { ShiprocketPickups } from "./pickups";
+export { ShiprocketRates } from "./rates";
 
 // Configuration
 export {
@@ -27,6 +28,7 @@ import { ShiprocketAuth } from "./auth";
 import { ShiprocketOrders } from "./orders";
 import { ShiprocketTracking } from "./tracking";
 import { ShiprocketPickups } from "./pickups";
+import { ShiprocketRates } from "./rates";
 
 /**
  * Main Shiprocket SDK Class
@@ -38,6 +40,7 @@ export class ShiprocketSDK {
   public readonly orders: ShiprocketOrders;
   public readonly tracking: ShiprocketTracking;
   public readonly pickups: ShiprocketPickups;
+  public readonly rates: ShiprocketRates;
 
   constructor() {
     // Initialize HTTP client
@@ -50,6 +53,7 @@ export class ShiprocketSDK {
     this.orders = new ShiprocketOrders(this.http, this.auth);
     this.tracking = new ShiprocketTracking(this.http, this.auth);
     this.pickups = new ShiprocketPickups(this.http, this.auth);
+    this.rates = new ShiprocketRates(this.http, this.auth);
   }
 
   /**
