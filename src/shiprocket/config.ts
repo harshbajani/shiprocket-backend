@@ -8,7 +8,8 @@ export const SHIPROCKET_CONFIG: ShiprocketConfig = {
   EMAIL: process.env.SHIPROCKET_EMAIL,
   PASSWORD: process.env.SHIPROCKET_PASSWORD,
   DEFAULT_PICKUP_LOCATION:
-    process.env.SHIPROCKET_DEFAULT_PICKUP_LOCATION || "Default",
+    process.env.SHIPROCKET_DEFAULT_PICKUP_LOCATION ||
+    "The_Gujarat_Store_67b331ad ",
   DEFAULT_CHANNEL_ID: "custom",
   STATUS_MAPPING: {
     NEW: "ready to ship",
@@ -53,12 +54,23 @@ export const SHIPROCKET_CONFIG: ShiprocketConfig = {
 
 export function validateConfig(): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
-  if (!SHIPROCKET_CONFIG.EMAIL) errors.push("SHIPROCKET_EMAIL is required");
-  if (!SHIPROCKET_CONFIG.PASSWORD)
+
+  if (!SHIPROCKET_CONFIG.EMAIL) {
+    errors.push("SHIPROCKET_EMAIL is required");
+  }
+
+  if (!SHIPROCKET_CONFIG.PASSWORD) {
     errors.push("SHIPROCKET_PASSWORD is required");
-  if (!SHIPROCKET_CONFIG.API_BASE_URL)
+  }
+
+  if (!SHIPROCKET_CONFIG.API_BASE_URL) {
     errors.push("SHIPROCKET_API_BASE_URL is required");
-  return { isValid: errors.length === 0, errors };
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
 }
 
 export function getApiBaseUrl(): string {

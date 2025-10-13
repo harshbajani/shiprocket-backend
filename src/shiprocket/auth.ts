@@ -32,8 +32,11 @@ export class ShiprocketAuth {
       }
 
       if (this.authToken && this.tokenExpiry && new Date() < this.tokenExpiry) {
+        console.log("[Shiprocket Auth] Using cached token");
         return { success: true, data: this.authToken };
       }
+
+      console.log("[Shiprocket Auth] Authenticating with Shiprocket...");
 
       const authRequest: ShiprocketAuthRequest = {
         email: SHIPROCKET_CONFIG.EMAIL!,
@@ -59,8 +62,12 @@ export class ShiprocketAuth {
       this.authToken = response.data.token;
       this.tokenExpiry = new Date(Date.now() + 9 * 24 * 60 * 60 * 1000);
 
+      console.log("[Shiprocket Auth] Authentication successful");
+
       return { success: true, data: this.authToken };
     } catch (error) {
+      console.error("[Shiprocket Auth] Authentication error:", error);
+
       return {
         success: false,
         error: {
@@ -90,6 +97,7 @@ export class ShiprocketAuth {
   clearAuth(): void {
     this.authToken = null;
     this.tokenExpiry = null;
+    console.log("[Shiprocket Auth] Authentication cleared");
   }
 
   getTokenInfo(): { hasToken: boolean; expires?: Date; isValid?: boolean } {

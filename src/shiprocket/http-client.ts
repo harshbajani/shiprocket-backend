@@ -22,6 +22,9 @@ export class ShiprocketHttpClient {
       if (token) headers.Authorization = `Bearer ${token}`;
 
       const config: RequestInit = { ...options, headers };
+
+      console.log(`[Shiprocket] ${options.method || "GET"} ${url}`);
+
       const response = await fetch(url, config);
 
       if (!response.ok) {
@@ -32,12 +35,22 @@ export class ShiprocketHttpClient {
           statusText: response.statusText,
           response: errorText,
         };
+
+        console.error(`[Shiprocket] Error:`, error);
+
         return { success: false, error };
       }
 
       const data = await response.json();
+      console.log(`[Shiprocket] Success:`, {
+        status: response.status,
+        data: typeof data,
+      });
+
       return { success: true, data };
     } catch (error) {
+      console.error(`[Shiprocket] Request failed:`, error);
+
       const shiprocketError: ShiprocketError = {
         message: error instanceof Error ? error.message : "Unknown error",
         status: 0,
