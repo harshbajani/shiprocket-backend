@@ -262,27 +262,58 @@ export class ShiprocketOrders {
     let pickupLocation = vendorData?.shiprocket_pickup_location;
 
     if (!pickupLocation && vendorData) {
-      // Generate pickup location name with 36 character limit
-      const storeName = vendorData?.store?.storeName || "Store";
-      const vendorId = vendorData?._id || "default";
-      let baseName = `${storeName}_${vendorId}`.replace(/[^a-zA-Z0-9_]/g, "_");
+      // Generate pickup location name with 36 character limit - prioritize actual store name
+      let storeName =
+        vendorData?.store?.storeName ||
+        vendorData?.storeName ||
+        vendorData?.name ||
+        "Store";
 
-      // Enforce 36 character limit (Shiprocket requirement)
-      if (baseName.length > 36) {
-        const vendorIdSuffix = vendorId.slice(-8);
-        const maxStoreNameLength = 36 - vendorIdSuffix.length - 1;
-        const truncatedStoreName = storeName.slice(0, maxStoreNameLength);
-        baseName = `${truncatedStoreName}_${vendorIdSuffix}`.replace(
-          /[^a-zA-Z0-9_]/g,
-          "_"
-        );
+      console.log(
+        "[Shiprocket Orders] Raw store name for pickup location:",
+        storeName
+      );
 
-        if (baseName.length > 36) {
-          baseName = baseName.slice(0, 36);
-        }
+      // Clean and format the store name
+      storeName = storeName
+        .trim()
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .replace(/\s+/g, "_");
+
+      // If still empty, use vendor name as fallback
+      if (!storeName || storeName === "_" || storeName.length === 0) {
+        storeName = (vendorData?.name || "Store")
+          .trim()
+          .replace(/[^a-zA-Z0-9\s]/g, "")
+          .replace(/\s+/g, "_");
       }
 
-      pickupLocation = baseName;
+      const vendorId = vendorData?._id || "default";
+      const vendorIdSuffix = vendorId.toString().slice(-8); // Last 8 characters
+
+      // Calculate available space for store name (36 total - 1 underscore - 8 vendor suffix)
+      const maxStoreNameLength = 36 - 1 - vendorIdSuffix.length;
+
+      // Truncate store name if needed
+      if (storeName.length > maxStoreNameLength) {
+        storeName = storeName.slice(0, maxStoreNameLength);
+      }
+
+      // Build final name: StoreName_VendorId
+      const baseName = `${storeName}_${vendorIdSuffix}`.replace(
+        /[^a-zA-Z0-9_]/g,
+        "_"
+      );
+
+      // Final safety check for 36 character limit
+      pickupLocation = baseName.length > 36 ? baseName.slice(0, 36) : baseName;
+
+      console.log("[Shiprocket Orders] Generated pickup location:", {
+        storeName,
+        vendorIdSuffix,
+        pickupLocation,
+        length: pickupLocation.length,
+      });
     }
 
     if (!pickupLocation) {

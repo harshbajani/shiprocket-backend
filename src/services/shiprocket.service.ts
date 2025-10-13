@@ -111,65 +111,64 @@ export class ShiprocketService {
   }
 
   /**
-   * Add pickup location via backend
+   * Add pickup location using SDK directly (backend implementation)
    */
   async addPickupLocation(
     locationData: ShiprocketPickupLocationRequest
   ): Promise<any> {
-    if (!this.backend)
-      throw new Error("SHIPROCKET_BACKEND_URL is not configured");
-    const resp = await this.fetchJSON<{ success: boolean; data: any }>(
-      "/shiprocket/pickups",
-      { method: "POST", body: JSON.stringify(locationData) }
-    );
-    return resp.data;
+    const response = await this.sdk.pickups.addPickupLocation(locationData);
+    if (!response.success) {
+      throw new Error(response.error?.message || 'Failed to add pickup location');
+    }
+    return response.data;
   }
 
   /**
-   * Get all pickup locations via backend
+   * Get all pickup locations using SDK directly (backend implementation)
    */
   async getPickupLocations(): Promise<any> {
-    if (!this.backend)
-      throw new Error("SHIPROCKET_BACKEND_URL is not configured");
-    const resp = await this.fetchJSON<{ success: boolean; data: any }>(
-      "/shiprocket/pickups",
-      { method: "GET" }
-    );
-    return resp.data;
+    const response = await this.sdk.pickups.getAllPickupLocations();
+    if (!response.success) {
+      throw new Error(response.error?.message || 'Failed to get pickup locations');
+    }
+    return response.data;
   }
 
   /**
-   * Create pickup location for vendor via backend (expects vendor with store.addresses)
+   * Update pickup location for vendor using SDK directly (backend implementation)
+   */
+  async updateVendorPickupLocation(
+    vendor: any,
+    oldLocationName?: string
+  ): Promise<{ success: boolean; location_name?: string; error?: string; updated?: boolean }> {
+    try {
+      const result = await this.sdk.pickups.updateVendorPickupLocation(vendor, oldLocationName);
+      return result;
+    } catch (error) {
+      console.error('[ShiprocketService] updateVendorPickupLocation error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update vendor pickup location'
+      };
+    }
+  }
+
+  /**
+   * Create pickup location for vendor using SDK directly (backend implementation)
    */
   async createVendorPickupLocation(
     vendor: any
   ): Promise<{ success: boolean; location_name?: string; error?: string }> {
-    if (!this.backend)
-      throw new Error("SHIPROCKET_BACKEND_URL is not configured");
-
-    // Backend expects the vendor object at the root of the body
-    const vendorPayload = {
-      _id: vendor?._id,
-      name: vendor?.name,
-      email: vendor?.email,
-      shiprocket_pickup_location: vendor?.shiprocket_pickup_location,
-      store: {
-        contact: vendor?.store?.contact,
-        // Accept both store.address or store.addresses shapes
-        address: vendor?.store?.address,
-        addresses: vendor?.store?.addresses || vendor?.store?.address || null,
-      },
-    };
-
-    const resp = await this.fetchJSON<{
-      success: boolean;
-      location_name?: string;
-      error?: string;
-    }>("/shiprocket/pickups/vendor", {
-      method: "POST",
-      body: JSON.stringify(vendorPayload),
-    });
-    return resp;
+    try {
+      const result = await this.sdk.pickups.createVendorPickupLocation(vendor);
+      return result;
+    } catch (error) {
+      console.error('[ShiprocketService] createVendorPickupLocation error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create vendor pickup location'
+      };
+    }
   }
 
   /**
@@ -222,6 +221,31 @@ export class ShiprocketService {
    */
   getTokenInfo() {
     return this.sdk.getTokenInfo();
+  }
+
+  /**
+   * Calculate shipping rates
+   */
+  async calculateShippingRates(rateData: any): Promise<any> {
+    const response = await this.sdk.rates.calculateRates(rateData);
+    if (!response.success) {
+      throw new Error(response.error?.message || 'Failed to calculate shipping rates');
+    }
+    return response.data;
+  }
+
+  /**
+   * Get cheapest rate from rates array
+   */
+  getCheapestRate(rates: any[]): any {
+    return this.sdk.rates.getCheapestRate(rates);
+  }
+
+  /**
+   * Get fastest rate from rates array
+   */
+  getFastestRate(rates: any[]): any {
+    return this.sdk.rates.getFastestRate(rates);
   }
 }
 
