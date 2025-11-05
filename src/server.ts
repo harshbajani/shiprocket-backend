@@ -1,7 +1,8 @@
 import app from "./app";
 
-const PORT = process.env.PORT || 8000;
+const PORT = parseInt(process.env.PORT as string, 10) || 8000;
 
-app.listen(PORT, () => {
-  console.log(`Listening on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🔗 Public access: http://<your-elastic-ip>:${PORT}`);
 });
