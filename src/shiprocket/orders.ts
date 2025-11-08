@@ -428,4 +428,79 @@ export class ShiprocketOrders {
     const status = shiprocketStatus.toUpperCase();
     return SHIPROCKET_CONFIG.NOTIFICATION_MAPPING[status] || null;
   }
+
+  /**
+   * Print invoice for order(s)
+   */
+  /**
+   * Print/Download invoice for order(s)
+   * @param orderIds - Array of Shiprocket order IDs (as strings)
+   * @returns Invoice URL and creation status
+   */
+  async printInvoice(orderIds: string[]): Promise<
+    ShiprocketAPIResponse<{
+      is_invoice_created: boolean;
+      invoice_url: string;
+      not_created: string[];
+      irn_no: string;
+    }>
+  > {
+    try {
+      console.log(`[Shiprocket Orders] Printing invoice for orders:`, orderIds);
+
+      const token = await this.auth.getToken();
+      if (!token)
+        return {
+          success: false,
+          error: {
+            message: "Authentication failed",
+            status: 401,
+            statusText: "Unauthorized",
+          },
+        };
+
+      const response = await this.httpClient.post<{
+        is_invoice_created: boolean;
+        invoice_url: string;
+        not_created: string[];
+        irn_no: string;
+      }>(SHIPROCKET_CONFIG.ENDPOINTS.PRINT_INVOICE, { ids: orderIds }, token);
+
+      if (response.success && response.data) {
+        console.log(
+          `[Shiprocket Orders] Invoice generated successfully:`,
+          response.data.invoice_url
+        );
+
+        // Log any orders that failed to generate invoice
+        if (response.data.not_created?.length > 0) {
+          console.warn(
+            `[Shiprocket Orders] Failed to generate invoice for:`,
+            response.data.not_created
+          );
+        }
+      } else {
+        console.error(
+          `[Shiprocket Orders] Failed to generate invoice:`,
+          orderIds,
+          response.error
+        );
+      }
+
+      return response;
+    } catch (error) {
+      console.error("[Shiprocket Orders] Error printing invoice:", error);
+
+      return {
+        success: false,
+        error: {
+          message:
+            error instanceof Error ? error.message : "Failed to print invoice",
+          status: 500,
+          statusText: "Internal Server Error",
+          response: error,
+        },
+      };
+    }
+  }
 }

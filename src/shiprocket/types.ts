@@ -168,6 +168,7 @@ export interface ShiprocketConfig {
     GET_COURIERS: string;
     ADD_PICKUP_LOCATION: string;
     GET_PICKUP_LOCATIONS: string;
+    PRINT_INVOICE: string;
   };
   DEFAULT_DIMENSIONS: {
     length: number;

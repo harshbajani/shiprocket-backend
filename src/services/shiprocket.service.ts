@@ -118,7 +118,9 @@ export class ShiprocketService {
   ): Promise<any> {
     const response = await this.sdk.pickups.addPickupLocation(locationData);
     if (!response.success) {
-      throw new Error(response.error?.message || 'Failed to add pickup location');
+      throw new Error(
+        response.error?.message || "Failed to add pickup location"
+      );
     }
     return response.data;
   }
@@ -129,7 +131,9 @@ export class ShiprocketService {
   async getPickupLocations(): Promise<any> {
     const response = await this.sdk.pickups.getAllPickupLocations();
     if (!response.success) {
-      throw new Error(response.error?.message || 'Failed to get pickup locations');
+      throw new Error(
+        response.error?.message || "Failed to get pickup locations"
+      );
     }
     return response.data;
   }
@@ -140,15 +144,29 @@ export class ShiprocketService {
   async updateVendorPickupLocation(
     vendor: any,
     oldLocationName?: string
-  ): Promise<{ success: boolean; location_name?: string; error?: string; updated?: boolean }> {
+  ): Promise<{
+    success: boolean;
+    location_name?: string;
+    error?: string;
+    updated?: boolean;
+  }> {
     try {
-      const result = await this.sdk.pickups.updateVendorPickupLocation(vendor, oldLocationName);
+      const result = await this.sdk.pickups.updateVendorPickupLocation(
+        vendor,
+        oldLocationName
+      );
       return result;
     } catch (error) {
-      console.error('[ShiprocketService] updateVendorPickupLocation error:', error);
+      console.error(
+        "[ShiprocketService] updateVendorPickupLocation error:",
+        error
+      );
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update vendor pickup location'
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to update vendor pickup location",
       };
     }
   }
@@ -163,10 +181,16 @@ export class ShiprocketService {
       const result = await this.sdk.pickups.createVendorPickupLocation(vendor);
       return result;
     } catch (error) {
-      console.error('[ShiprocketService] createVendorPickupLocation error:', error);
+      console.error(
+        "[ShiprocketService] createVendorPickupLocation error:",
+        error
+      );
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to create vendor pickup location'
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create vendor pickup location",
       };
     }
   }
@@ -229,7 +253,9 @@ export class ShiprocketService {
   async calculateShippingRates(rateData: any): Promise<any> {
     const response = await this.sdk.rates.calculateRates(rateData);
     if (!response.success) {
-      throw new Error(response.error?.message || 'Failed to calculate shipping rates');
+      throw new Error(
+        response.error?.message || "Failed to calculate shipping rates"
+      );
     }
     return response.data;
   }
@@ -246,6 +272,24 @@ export class ShiprocketService {
    */
   getFastestRate(rates: any[]): any {
     return this.sdk.rates.getFastestRate(rates);
+  }
+
+  /**
+   * Generate invoice for Shiprocket order(s)
+   * @param orderIds - Array of Shiprocket order IDs
+   * @returns Invoice URL and creation status
+   */
+  async printInvoice(orderIds: string[]): Promise<{
+    is_invoice_created: boolean;
+    invoice_url: string;
+    not_created: string[];
+    irn_no: string;
+  }> {
+    const response = await this.sdk.orders.printInvoice(orderIds);
+    if (!response.success) {
+      throw new Error(response.error?.message || "Failed to generate invoice");
+    }
+    return response.data!;
   }
 }
 

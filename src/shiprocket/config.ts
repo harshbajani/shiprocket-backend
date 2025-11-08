@@ -43,6 +43,7 @@ export const SHIPROCKET_CONFIG: ShiprocketConfig = {
     GET_COURIERS: "/courier/courierListWithCounts",
     ADD_PICKUP_LOCATION: "/settings/company/addpickup",
     GET_PICKUP_LOCATIONS: "/settings/company/pickup",
+    PRINT_INVOICE: "/orders/print/invoice",
   },
   DEFAULT_DIMENSIONS: {
     length: 10,
